@@ -1,0 +1,7 @@
+<div class="header">
+    <ng-container *ngFor="let r of routes">       
+         <a [routerLink]='r.url' class="route-link" 
+        routerLinkActive="">{{r.title}}</a>
+    </ng-container> 
+    <app-style-switcher></app-style-switcher>
+</div>

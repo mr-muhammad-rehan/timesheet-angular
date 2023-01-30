@@ -30,7 +30,21 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.scss"
+              {
+                "input": "src/scss/tailwind.scss",
+                "inject": false,
+                "bundleName": "tailwind-styles"
+              },
+              {
+                "input": "src/scss/bootstrap.scss",
+                "inject": false,
+                "bundleName": "bootstrap-styles"
+              },
+              {
+                "input": "src/scss/styles.scss",
+                "inject": true,
+                "bundleName": "styles"
+              }
             ],
             "scripts": []
           },
