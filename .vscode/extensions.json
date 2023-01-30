@@ -3,6 +3,8 @@
   "recommendations": [
     "angular.ng-template",
     "cyrilletuzi.angular-schematics",
-    "infinity1207.angular2-switcher"
+    "infinity1207.angular2-switcher",
+    "csstools.postcss",
+    "Zignd.html-css-class-completion"
   ]
 }

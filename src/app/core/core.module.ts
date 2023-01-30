@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { StyleSwitcherComponent } from './components/header/style-switcher/style-switcher.component';
 import { HeaderComponent } from './components/header/header.component';
 import { RouterModule } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -14,10 +15,11 @@ import { RouterModule } from '@angular/router';
     CommonModule,
     FormsModule,
     RouterModule,
+    HttpClientModule
   ],
   exports: [
-    HeaderComponent,
-    StyleSwitcherComponent
+    HttpClientModule,
+    HeaderComponent
   ]
 })
 export class CoreModule { }
