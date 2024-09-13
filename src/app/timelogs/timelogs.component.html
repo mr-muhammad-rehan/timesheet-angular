@@ -1,0 +1,27 @@
+<div class="p-10">
+  <form class="flex flex-row" [formGroup]="timesheetFormGroup" (ngSubmit)="onSubmit()">
+    <div class="flex flex-col">
+      <label for="task">Task</label>
+
+      <p-autoComplete formControlName="task" [suggestions]="tasks" (completeMethod)="filterTasks($event)"
+        field="name" id="task" />
+
+    </div>
+
+    <div class="flex flex-col">
+      <label for="timeStart">timeStart</label>
+      <p-calendar id="timeStart" formControlName="timeStart" />
+    </div>
+
+    <div class="flex flex-col">
+      <label for="timeEnd">Time End</label>
+      <p-calendar id="timeEnd" formControlName="timeEnd" />
+    </div>
+
+    <p-button label="Save" type="submit" />
+
+  </form>
+
+
+
+</div>

@@ -12,5 +12,9 @@ export class HeaderComponent {
       title: 'Dashboard',
       url: 'dashboard'
     },
+    {
+      title: 'timesheet',
+      url: 'timesheet'
+    },
   ]
 }
