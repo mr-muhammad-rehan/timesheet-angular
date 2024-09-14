@@ -13,7 +13,7 @@ export class HeaderComponent {
       url: 'dashboard'
     },
     {
-      title: 'timesheet',
+      title: 'Timesheet',
       url: 'timesheet'
     },
   ]

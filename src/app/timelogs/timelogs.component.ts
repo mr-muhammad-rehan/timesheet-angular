@@ -1,23 +1,13 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpService } from '../services/http.service';
+import { Task, TimeSheet } from '../contracts';
+import { MessageService } from 'primeng/api';
+import { Message } from 'primeng/api';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Subject, Subscription } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';
 
-
-interface Task {
-  createdAt: Date,
-  name: string,
-  id: number
-}
-
-interface TimeSheet {
-  task: any;
-  start: string;
-  end: string;
-}
-
-
-const baseUrl = 'https://63d74fd85c4274b136f1fda5.mockapi.io/api/v1';
 
 @Component({
   selector: 'app-timelogs',
@@ -25,55 +15,101 @@ const baseUrl = 'https://63d74fd85c4274b136f1fda5.mockapi.io/api/v1';
   styleUrls: ['./timelogs.component.scss']
 })
 export class TimelogsComponent implements OnInit {
+  public messages: Message[] = [];
 
-  timesheetFormGroup = new FormGroup({
-    task: new FormControl('', Validators.required),
-    timeStart: new FormControl('', Validators.required),
-    timeEnd: new FormControl('', Validators.required),
-  });
-
+  timesheetFormGroup!: FormGroup;
   public tasks: Task[] = [];
+  public isSaving = false;
+  public taskInput$ = new Subject<string>();
+  public logs: TimeSheet[] = [];
 
-  constructor(private http: HttpClient, private timeSheet: HttpService ) {
 
-  }
+  private subscriptions: Subscription[] = [];
+
+  constructor(private timeSheetService: HttpService, private cd: ChangeDetectorRef) {}
+
+
   ngOnInit(): void {
+    this.initializeForm();
+    this.setupTaskAutoComplete();
+    this.fetchLogs();
   }
 
 
-
-
-  public onSubmit() {
-    console.log(this.timesheetFormGroup.value);
-    const payload = {
-      task: this.timesheetFormGroup.value.task,
-      start: this.timesheetFormGroup.value.timeStart,
-      end: this.timesheetFormGroup.value.timeEnd
-    } as TimeSheet;
-
-    this.saveTimeSheet(payload);
-  }
-
-  public filterTasks(event: any) {
-    this.fetchTasks(event?.query);
-  }
-
-  public getTaskName(): string[] {
-    return this.tasks.map(t => t.name);
-  }
-
-
-
-  private fetchTasks(name?: string) {
-    this.http.get(`${baseUrl}/task?name=${name}`).subscribe(res => {
-      this.tasks = res as Task[];
+  initializeForm() {
+    this.timesheetFormGroup = new FormGroup({
+      task: new FormControl('', Validators.required),
+      timeStart: new FormControl('', [Validators.required]),
+      timeEnd: new FormControl('', [Validators.required, this.endAfterStartValidator])
     });
   }
 
-  private saveTimeSheet(timeSheet: TimeSheet) {
-    return this.http.post<TimeSheet>(`${baseUrl}/log`, {
-      ...timeSheet
-    }).subscribe(console.log);
+  setupTaskAutoComplete() {
+    this.taskInput$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(name => this.timeSheetService.fetchTasks(name))
+    ).subscribe((tasks: Task[]) => this.tasks = tasks);
   }
 
+  endAfterStartValidator(control: FormControl): { [key: string]: boolean } | null {
+    const formGroup = control.parent;
+    if (formGroup) {
+      const startTime = formGroup.get('timeStart')?.value;
+      const endTime = formGroup.get('timeEnd')?.value;
+      if (startTime && endTime && startTime >= endTime) {
+        return { 'endBeforeStart': true };
+      }
+    }
+    return null;
+  }
+
+  clearMessages() {
+    setTimeout(() => {
+      this.messages = [];
+    }, 3000);
+  }
+
+
+  public onSubmit() {
+    if (this.timesheetFormGroup.invalid) {
+      return;
+    }
+
+    this.isSaving = true;
+    const payload: TimeSheet = {
+      task: this.timesheetFormGroup.value.task,
+      start: this.timesheetFormGroup.value.timeStart,
+      end: this.timesheetFormGroup.value.timeEnd
+    };
+
+    this.subscriptions.push(this.timeSheetService.saveTimeSheet(payload).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.messages = [{ severity: 'success', summary: 'Success', detail: 'Log saved successfully' }];
+      },
+      error: () => {
+        this.isSaving = false;
+        this.messages = [{ severity: 'error', summary: 'Error', detail: 'Failed to save log' }];
+      }
+    }));
+  }
+
+  public fetchLogs() {
+    const logSubscription = this.timeSheetService.getTimeLogs().subscribe({
+      next: (logs: TimeSheet[]) => {
+        this.logs = logs;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.messages = [{ severity: 'error', summary: 'Error', detail: 'Failed to load logs' }];
+      }
+    });
+
+    this.subscriptions.push(logSubscription);
+  }
+
+  public filterTasks(event: any) {
+    this.taskInput$.next(event.query);
+  }
 }

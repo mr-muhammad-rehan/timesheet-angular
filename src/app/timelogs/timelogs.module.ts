@@ -8,6 +8,7 @@ import { TimelogsComponent } from './timelogs.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { MessagesModule } from 'primeng/messages';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,9 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
     TableModule,
     CalendarModule,
     ButtonModule,
-    AutoCompleteModule
+    AutoCompleteModule,
+    MessagesModule
   ]
+
 })
 export class TimelogsModule { }
